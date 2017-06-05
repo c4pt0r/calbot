@@ -122,11 +122,7 @@ func (p *parser) matchMin() error {
 		p.accept()
 	}
 	p.accept()
-	var err error
-	p.min, err = strconv.Atoi(min)
-	if err != nil {
-		return errors.Errorf("invalid num")
-	}
+	p.min, _ = strconv.Atoi(min)
 	return nil
 }
 
