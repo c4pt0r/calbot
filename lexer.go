@@ -14,6 +14,7 @@ const (
 	Month
 	Day
 	Hour
+	Min
 	Week
 	WeekDay // Monday to Sunday
 	Next
@@ -32,6 +33,7 @@ var tokStr = []string{
 	"mon",
 	"day",
 	"hour",
+	"min",
 	"week",
 	"weekday",
 	"next",
@@ -148,6 +150,11 @@ func (l *lexer) consumeHour() {
 	l.pushToken(Hour)
 }
 
+func (l *lexer) consumeMin() {
+	l.consume(1)
+	l.pushToken(Min)
+}
+
 func (l *lexer) consumeClocknum() {
 	l.consume(1)
 	l.pushToken(Num)
@@ -189,6 +196,8 @@ func (l *lexer) run() error {
 			l.consumeClocknum()
 		} else if l.peek(0) == '时' || l.peek(0) == '点' {
 			l.consumeHour()
+		} else if l.peek(0) == '分' {
+			l.consumeMin()
 		} else {
 			msg := string(l.input[0:l.start]) + "[" + string(l.input[l.start]) + "]" + string(l.input[l.start+1:len(l.input)])
 			return errors.Errorf("lexer: unknown token: %s", msg)

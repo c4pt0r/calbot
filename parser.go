@@ -36,6 +36,9 @@ func newParser(l *lexer) *parser {
 }
 
 func (p *parser) curToken() *Token {
+	if p.cur > len(p.l.tokens)-1 {
+		return nil
+	}
 	return p.l.tokens[p.cur]
 }
 
@@ -98,26 +101,31 @@ func (p *parser) matchMorningOrAfternoon() error {
 }
 
 func (p *parser) matchHour() error {
-	if p.curToken().typ == Num {
-		var err error
-		p.hour, err = strconv.Atoi(p.curToken().val)
-		if err != nil {
-			return errors.Errorf("invalid num")
-		}
+	hour := ""
+	for p.curToken() != nil && p.curToken().typ == Num {
+		hour += p.curToken().val
 		p.accept()
-		return nil
 	}
-	return errors.Errorf("invalid hour")
+	p.accept()
+	var err error
+	p.hour, err = strconv.Atoi(hour)
+	if err != nil {
+		return errors.Errorf("invalid hour")
+	}
+	return nil
 }
 
 func (p *parser) matchMin() error {
-	if p.curToken().typ == Num {
-		var err error
-		p.min, err = strconv.Atoi(p.curToken().val)
-		if err != nil {
-			return errors.Errorf("invalid num")
-		}
+	min := ""
+	for p.curToken() != nil && p.curToken().typ == Num {
+		min += p.curToken().val
 		p.accept()
+	}
+	p.accept()
+	var err error
+	p.min, err = strconv.Atoi(min)
+	if err != nil {
+		return errors.Errorf("invalid num")
 	}
 	return nil
 }
@@ -158,5 +166,6 @@ func (p *parser) Exec() time.Time {
 	}
 	return weekdayTime(p.weekday).
 		Add(time.Duration(p.hour)*time.Hour).
+		Add(time.Duration(p.min)*time.Minute).
 		AddDate(0, 0, p.nextCnt*7)
 }
