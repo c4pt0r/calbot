@@ -11,6 +11,7 @@ type TokenType int
 
 const (
 	Rune TokenType = iota
+	Today
 	Month
 	Day
 	Hour
@@ -30,6 +31,7 @@ func (v TokenType) String() string {
 
 var tokStr = []string{
 	"rune",
+	"today",
 	"mon",
 	"day",
 	"hour",
@@ -160,11 +162,20 @@ func (l *lexer) consumeClocknum() {
 	l.pushToken(Num)
 }
 
+func (l *lexer) consumeToday() {
+	l.consume(2)
+	l.pushToken(Today)
+}
+
 func (l *lexer) run() error {
 	for {
 		l.skipSpace()
 		if isEOF(l.peek(0)) {
 			return nil
+		} else if l.peek(0) == '今' {
+			if l.peek(1) == '天' {
+				l.consumeToday()
+			}
 		} else if l.peek(0) == '周' {
 			l.consumeWeek(1)
 		} else if l.peek(0) == '月' {
@@ -180,6 +191,12 @@ func (l *lexer) run() error {
 			l.consumeWeekday()
 		} else if l.peek(0) == '下' {
 			if l.peek(1) == '午' {
+				l.consumeAfternoon()
+			} else {
+				l.consumeNext()
+			}
+		} else if l.peek(0) == '晚' {
+			if l.peek(1) == '上' {
 				l.consumeAfternoon()
 			} else {
 				l.consumeNext()

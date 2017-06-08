@@ -27,6 +27,7 @@ type parser struct {
 	weekday   int
 	morning   bool
 	afternoon bool
+	today     bool
 	hour      int
 	min       int
 }
@@ -80,6 +81,11 @@ func (p *parser) matchWeekday() error {
 }
 
 func (p *parser) matchDay() error {
+	if p.curToken().typ == Today {
+		p.accept()
+		p.today = true
+		return nil
+	}
 	if p.curToken().typ == Week {
 		p.accept()
 		return p.matchWeekday()
@@ -159,6 +165,10 @@ func weekdayTime(w int) time.Time {
 func (p *parser) Exec() time.Time {
 	if p.afternoon {
 		p.hour += 12
+	}
+	if p.today {
+		t := now.BeginningOfDay()
+		p.weekday = int(t.Weekday())
 	}
 	return weekdayTime(p.weekday).
 		Add(time.Duration(p.hour)*time.Hour).
